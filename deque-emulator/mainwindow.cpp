@@ -212,20 +212,20 @@ void MainWindow::on_btn_max_element_clicked() {
 
 void MainWindow::on_btn_merge_sort_strict_clicked() {
     const std::deque<std::string> data = dequeue_model_.items;
-    dequeue_model_.items = MergeSort<std::string>(data, [](const std::string& a, const std::string&b) { return a < b; });
+    dequeue_model_.items = MergeSort<std::string>(data, std::less<std::string>{});
     dequeue_model_.it = dequeue_model_.items.begin();
     ApplyModel();
 }
 
 
 void MainWindow::on_btn_merge_sort_unstrict_clicked() {
-    dequeue_model_.items = MergeSort(dequeue_model_.items, [](const std::string& a, const std::string& b) {
-        return std::lexicographical_compare(
-            a.begin(), a.end(),
-            b.begin(), b.end(),
-            [](const unsigned char c1, const unsigned char c2) {
-                return std::tolower(c1) < std::tolower(c2);
-            });
+    dequeue_model_.items = MergeSort(dequeue_model_.items, [](
+        const std::string& a, const std::string& b
+        ) {
+        return QString::fromStdString(a).compare(
+            QString::fromStdString(b),
+            Qt::CaseInsensitive
+        ) < 0;
     });
     dequeue_model_.it = dequeue_model_.items.begin();
     ApplyModel();
@@ -335,8 +335,15 @@ void MainWindow::on_btn_template_cake_clicked() {
  *
  */
 void MainWindow::on_btn_resize_clicked() {
-    const int size = ui->txt_size->text().toInt();
-    dequeue_model_.items.resize(size);
+    // Met once, so i decide to keep em only in function
+    constexpr int MIN_SIZE = 0;
+    constexpr int MAX_SIZE = 1000;
+
+    int size = ui->txt_size->text().toInt();
+    size = std::max(MIN_SIZE, std::min(MAX_SIZE, size));
+    ui->txt_size->setText(QString::number(size));
+
+    dequeue_model_.items.resize(static_cast<std::deque<std::string>::size_type>(size));
     dequeue_model_.it = dequeue_model_.items.begin();
     ApplyModel();
 }
